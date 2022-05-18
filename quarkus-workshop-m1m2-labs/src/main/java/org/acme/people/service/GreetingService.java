@@ -2,6 +2,9 @@ package org.acme.people.service;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
+@Traced
 @ApplicationScoped
 public class GreetingService {
 
