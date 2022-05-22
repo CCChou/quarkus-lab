@@ -6,7 +6,7 @@
 ## Create AMQ Streams cluster
   * Install AMQ Streams Operator
   * Using Topology to create a new kafka cluster
-    <img width="655" alt="kafka-cluster" src="https://user-images.githubusercontent.com/58408898/169682544-3b112d69-4eba-498a-86fb-13e9f87d000e.png"> 
+    <img width="655" alt="kafka-cluster" src="https://user-images.githubusercontent.com/58408898/169682544-3b112d69-4eba-498a-86fb-13e9f87d000e.png">
   * Using Topology to create a new kafka topic
     <img width="637" alt="kafka-topic" src="https://user-images.githubusercontent.com/58408898/169682550-2b1de5b6-bdc0-46c4-ac21-15faf12f3d22.png"> 
 ## Create Prometheus
