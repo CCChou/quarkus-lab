@@ -54,6 +54,7 @@ public class GreetingResource {
     public String hello() {
         registry.counter("greeting.hello.counter").increment();
         return message + " " + name.orElse("world") + suffix;
+        // return "hello";
     }
 
     @GET

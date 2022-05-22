@@ -9,6 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 @Entity
@@ -25,11 +27,12 @@ public class Person extends PanacheEntity {
     @Column(length = 8)
     public EyeColor eyes;
 
-    // TODO: Add more queries
+    @Traced
     public static List<Person> findByColor(EyeColor color) {
         return list("eyes", color);
     }
 
+    @Traced
     public static List<Person> getBeforeYear(int year) {
         return Person.<Person>streamAll()
                 .filter(p -> p.birth.getYear() <= year)
