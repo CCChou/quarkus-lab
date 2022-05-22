@@ -2,16 +2,16 @@
 
 ## Create PostgreSQL DB
   * Using Topology to add new PostgreSQL services
-    <img width="792" alt="postgresql" src="https://user-images.githubusercontent.com/58408898/169682524-2b5a81df-21ff-467d-8cb1-7de1cd375ea3.png"> 
+    * <img width="792" alt="postgresql" src="https://user-images.githubusercontent.com/58408898/169682524-2b5a81df-21ff-467d-8cb1-7de1cd375ea3.png"> 
 
 ## Create AMQ Streams cluster
   * Install AMQ Streams Operator
   
   * Using Topology to create a new kafka cluster
-    <img width="655" alt="kafka-cluster" src="https://user-images.githubusercontent.com/58408898/169682544-3b112d69-4eba-498a-86fb-13e9f87d000e.png">
+    * <img width="655" alt="kafka-cluster" src="https://user-images.githubusercontent.com/58408898/169682544-3b112d69-4eba-498a-86fb-13e9f87d000e.png">
   
   * Using Topology to create a new kafka topic
-    <img width="637" alt="kafka-topic" src="https://user-images.githubusercontent.com/58408898/169682550-2b1de5b6-bdc0-46c4-ac21-15faf12f3d22.png"> 
+    * <img width="637" alt="kafka-topic" src="https://user-images.githubusercontent.com/58408898/169682550-2b1de5b6-bdc0-46c4-ac21-15faf12f3d22.png"> 
 
 ## Create Prometheus
   * Create prometheus configmap from prometheus.yml
@@ -20,44 +20,46 @@
     ```
 
   * Using Topology to add new prometheus via container image
-    <img width="454" alt="prometheus" src="https://user-images.githubusercontent.com/58408898/169682560-9d114d91-8242-48f6-8a8a-e3a34ae95dbb.png"> 
+    * <img width="454" alt="prometheus" src="https://user-images.githubusercontent.com/58408898/169682560-9d114d91-8242-48f6-8a8a-e3a34ae95dbb.png"> 
   
   * Mount configmap
     ```
     oc set volume deployment/prometheus --add -t configmap --configmap-name=prom -m /etc/prometheus/prometheus.yml --sub-path=prometheus.yml
     ```
+  
   * Rollout prometheus services
     ```
     oc rollout status -w deployment/prometheus
     ```
+  
   * Open prometheus UI
-    <img width="959" alt="prometheus-ui" src="https://user-images.githubusercontent.com/58408898/169682573-4327c4d6-6eaa-4a04-b4af-a8169e755952.png">
+    * <img width="959" alt="prometheus-ui" src="https://user-images.githubusercontent.com/58408898/169682573-4327c4d6-6eaa-4a04-b4af-a8169e755952.png">
 
 ## Create Grafana
   * Using Topology to add new grafana via container image
-    <img width="451" alt="grafana" src="https://user-images.githubusercontent.com/58408898/169682590-e5afdd13-65b7-4fce-aa4f-2b2b898daf65.png"> 
+    * <img width="451" alt="grafana" src="https://user-images.githubusercontent.com/58408898/169682590-e5afdd13-65b7-4fce-aa4f-2b2b898daf65.png"> 
   
   * Add datasource to grafana
-    <img width="757" alt="grafana-add-datasource" src="https://user-images.githubusercontent.com/58408898/169682599-41dbcfc8-a360-479a-a80c-a1c4f7768585.png">
-    <img width="388" alt="grafana-add-datasource-proemtheus" src="https://user-images.githubusercontent.com/58408898/169682604-f0652e94-5b06-4db2-9d1d-7e9437b46c3b.png">
+    * <img width="757" alt="grafana-add-datasource" src="https://user-images.githubusercontent.com/58408898/169682599-41dbcfc8-a360-479a-a80c-a1c4f7768585.png">
+    * <img width="388" alt="grafana-add-datasource-proemtheus" src="https://user-images.githubusercontent.com/58408898/169682604-f0652e94-5b06-4db2-9d1d-7e9437b46c3b.png">
 
 ## Create Jaeger
   * Install Red Hat Distributed Tracing Operator
   
   * Using Topology to add new Jaeger service
-    <img width="608" alt="jaeger" src="https://user-images.githubusercontent.com/58408898/169682616-6ec97772-09f3-4f22-bc96-ad5cd157d034.png">
+    * <img width="608" alt="jaeger" src="https://user-images.githubusercontent.com/58408898/169682616-6ec97772-09f3-4f22-bc96-ad5cd157d034.png">
 
 ## Create Keycloak
   * Install Red Hat SSO Operator
   
   * Create Keycloak using CR
-    <img width="454" alt="SSO-keycloak" src="https://user-images.githubusercontent.com/58408898/169682639-851a3d41-3585-4446-a146-a1ff66afee9f.png"> 
+    * <img width="454" alt="SSO-keycloak" src="https://user-images.githubusercontent.com/58408898/169682639-851a3d41-3585-4446-a146-a1ff66afee9f.png"> 
   
   * Login and create new realm (username/password is in the secret)
-    <img width="158" alt="SSO-realm" src="https://user-images.githubusercontent.com/58408898/169682643-d80ae1ec-f6cc-4160-b8af-64fdbf1bb5a2.png"> 
+    * <img width="158" alt="SSO-realm" src="https://user-images.githubusercontent.com/58408898/169682643-d80ae1ec-f6cc-4160-b8af-64fdbf1bb5a2.png"> 
   
   * Create client
-    <img width="691" alt="SSO-client" src="https://user-images.githubusercontent.com/58408898/169682655-ff62f699-bd7a-4908-9283-e07fdd5d5c14.png">
+    * <img width="691" alt="SSO-client" src="https://user-images.githubusercontent.com/58408898/169682655-ff62f699-bd7a-4908-9283-e07fdd5d5c14.png">
   
   * Create users
 
