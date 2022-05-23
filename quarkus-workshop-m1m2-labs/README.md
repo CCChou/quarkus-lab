@@ -47,6 +47,8 @@
   * Install Red Hat Distributed Tracing Operator
   
   * Using Topology to add new Jaeger service
+    * <img width="608" alt="jaeger" src="https://user-images.githubusercontent.com/58408898/169682616-6ec97772-09f3-4f22-bc96-ad5cd157d034.png">
+
 ## Create Keycloak
   * Install Red Hat SSO Operator
   
