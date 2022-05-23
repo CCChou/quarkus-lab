@@ -82,7 +82,7 @@
     ```
 
   * Add native build in pom.xml
-    ```
+    ```xml
     <profiles>
       <profile>
         <id>native</id>
@@ -145,13 +145,13 @@
     [smallrye rest client reactive reference](https://quarkus.io/guides/rest-client-reactive)
       
   * Inject greeting service
-    ```    
+    ```java   
     @Inject
     GreetingService service;
     ```
 
   * Add Greeting Endpoint
-    ```
+    ```java
     ...
     @GET
     @Produces(MediaType.TEXT_PLAIN)
@@ -194,7 +194,7 @@
     ```
 
   * Annotate Model class with @Entity
-    ```
+    ```java
     @Entity
     public class Person extends PanacheEntity {
 
@@ -202,7 +202,7 @@
     ```
 
   * Add query using Entity to resource class
-    ```
+    ```java
     ...
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -213,7 +213,7 @@
     ```
 
   * Add basic query to Model class
-    ```
+    ```java
     ...
     public static List<Person> findByColor(EyeColor color) {
         return list("eyes", color);
@@ -228,7 +228,7 @@
     ```
   
   * Add new query using Entity to resource class
-    ```
+    ```java
     ...
     @GET
     @Path("/eyes/{color}")
@@ -278,7 +278,7 @@
     ```
   
   * Add a simple health check probe
-    ```
+    ```java
     @Readiness
     @ApplicationScoped
     public class SimpleHealthCheck implements HealthCheck {
@@ -297,6 +297,7 @@
 
 ## Create and add custom data to a custom health check
   * Create custom data health check  
+    ```java
     @ApplicationScoped
     @Liveness
     public class DataHealthCheck implements HealthCheck {
@@ -310,6 +311,7 @@
                 .build();
       }
     }
+    ```
 
   * Test custom data health check
     ```
@@ -318,7 +320,7 @@
 
 ## Develop and fix negative health checks
   * Create database connection health check
-    ```
+    ```java
     @ApplicationScoped
     @Liveness
     public class DatabaseConnectionHealthCheck implements HealthCheck {
@@ -383,6 +385,13 @@
 # Create Microservices Metrics
 
 ## Leverage Prometheus to collect application metrics
+  * Add micrometer metrics extensions
+    ```
+    mvn quarkus:add-extension -Dextensions="micrometer-registry-prometheus" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    mvn quarkus:add-extension -Dextensions="quarkus-smallrye-metrics" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [micrometer metrics reference](https://quarkus.io/guides/micrometer)
+
 
 ## Generate metrics in the application and query them in Prometheus
 
