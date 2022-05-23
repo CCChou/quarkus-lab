@@ -70,30 +70,185 @@
     ```
     mvn compile quarkus:dev
     ```
+  
   * Test App is running
     ```
     curl http://localhost:8080/hello/lastletter/redhat ; echo
     ```
+  
   * Open GreetingResource.java and switch hello method to demonstrate live coding
     ```
     curl http://localhost:8080/hello
     ```
+
+  * Add native build in pom.xml
+    ```
+    <profiles>
+      <profile>
+        <id>native</id>
+        <activation>
+        ...
+        </activation>
+        <build>
+        ...
+        <properties>
+          <quarkus.package.type>native</quarkus.package.type>
+        </properties>
+      </profile>
+    </profiles>
+    ```
+
   * build native binary
     ```
     quarkus build --native -Dquarkus.native.container-build=true -Dquarkus.native.container-runtime=podman -DskipTests
+    ```
+
+## List and add extensions
+  * List quarkus extensions
     ```  
+    mvn quarkus:list-extensions -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+
+  * Check dependecies in dev UI
+    ```  
+    curl http://localhost:8080/q/dev
+    ```
 
 ## Package an application for deployment to OpenShift as a native image
-## List and add extensions
+  * Add OpenShift extension
+    ```
+    mvn quarkus:add-extension -Dextensions="openshift"
+    ```
+
+  * Add OpenShift deployment config to application.properties
+    ```
+    %prod.quarkus.kubernetes-client.trust-certs=true
+    %prod.quarkus.kubernetes.deploy=true
+    %prod.quarkus.kubernetes.deployment-target=openshift
+    %prod.quarkus.openshift.build-strategy=docker
+    %prod.quarkus.openshift.expose=true
+    ```    
+    [quarkus opneshift reference](https://quarkus.io/guides/deploying-to-openshift)
+
+  * build native binary and Deploy to OpenShift
+    ```
+    mvn clean package -Pnative -DskipTests -Dquarkus.package.uber-jar=false -Dquarkus.native.container-runtime=podman -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
 
 # Create a RESTful API services
 
 ## Add an externalized configuration to a Quarkus application using MicroProfile Config
+  * Add resteasy reactive jackson extension
+    ```
+    mvn quarkus:add-extension -Dextensions="resteasy-reactive-jackson" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [smallrye rest client reactive reference](https://quarkus.io/guides/rest-client-reactive)
+      
+  * Inject greeting service
+    ```    
+    @Inject
+    GreetingService service;
+    ```
+
+  * Add Greeting Endpoint
+    ```
+    ...
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/greeting/{name}")
+    @NonBlocking
+    public String greeting(@PathParam("name") String name) {
+        return service.greeting(name);
+    }
+    ...
+    ```
+
+  * Add env config to application.properties
+    ```
+    greeting.message=hi
+    greeting.name=quarkus in dev mode
+    %prod.greeting.name=production quarkus
+    ```
+    [quarkus environment configuration](https://quarkus.io/guides/config-reference)
+
 ## Create entities, define RESTful endpoints, and add basic queries
+  * Add postgresql extension
+    ```
+    mvn quarkus:add-extension -Dextensions="hibernate-orm-panache, jdbc-h2, jdbc-postgresql" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [hibernate orm panache reference](https://quarkus.io/guides/hibernate-orm-panache)
+
+  * Add database connection configuration to application.properties
+    ```
+    %prod.quarkus.datasource.db-kind=postgresql
+    %prod.quarkus.datasource.jdbc.url=jdbc:postgresql://postgres-database/person
+    %prod.quarkus.datasource.jdbc.driver=org.postgresql.Driver
+    
+    %dev.quarkus.datasource.db-kind=h2
+    %dev.quarkus.datasource.jdbc.url=jdbc:h2:mem:person
+    %dev.quarkus.datasource.jdbc.driver=org.h2.Driver
+    
+    %test.quarkus.datasource.db-kind=h2
+    %test.quarkus.datasource.jdbc.url=jdbc:h2:mem:person
+    %test.quarkus.datasource.jdbc.driver=org.h2.Driver
+    ```
+
+  * Annotate Model class with @Entity
+    ```
+    @Entity
+    public class Person extends PanacheEntity {
+
+    }
+    ```
+
+  * Add query using Entity to resource class
+    ```
+    ...
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Person> getAll() {
+        return Person.listAll();
+    }
+    ...
+    ```
+
+  * Add basic query to Model class
+    ```
+    ...
+    public static List<Person> findByColor(EyeColor color) {
+        return list("eyes", color);
+    }
+    
+    public static List<Person> getBeforeYear(int year) {
+        return Person.<Person>streamAll()
+        .filter(p -> p.birth.getYear() <= year)
+        .collect(Collectors.toList());
+    }
+    ...
+    ```
+  
+  * Add new query using Entity to resource class
+    ```
+    ...
+    @GET
+    @Path("/eyes/{color}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Person> findByColor(@PathParam(value = "color") EyeColor color) {
+        return Person.findByColor(color);
+    }
+
+    @GET
+    @Path("/birth/before/{year}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Person> getBeforeYear(@PathParam(value = "year") int year) {
+       return Person.getBeforeYear(year);
+    }
+    ...
+    ```
 
 ## Implement paging and filtering and integrate life-cycle hooks
 
-## Deploy a final Quarkus application to OpenShift
+## Deploy a Quarkus application to OpenShift and test service
 
   * Label database service
     ```
@@ -110,8 +265,101 @@
 # Create and Config Health Check
 
 ## Configure a project to use the Quarkus SmallRye Health extension
+  * Add SmallRye health extension  
+    ```
+    mvn quarkus:add-extension -Dextensions="smallrye-health" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [smallrye health reference](https://quarkus.io/guides/smallrye-health)
+
+  * Test default health endpoint
+    ```
+    curl http://localhost:8080/q/health/ready
+    curl http://localhost:8080/q/health/live 
+    ```
+  
+  * Add a simple health check probe
+    ```
+    @Readiness
+    @ApplicationScoped
+    public class SimpleHealthCheck implements HealthCheck {
+
+      @Override
+      public HealthCheckResponse call() {
+          return HealthCheckResponse.named("Simple health check").up().build();
+      }
+    }
+    ```
+  
+  * Test simple health endpoint
+    ```
+    curl http://localhost:8080/q/health/ready
+    ```
+
 ## Create and add custom data to a custom health check
+  * Create custom data health check  
+    @ApplicationScoped
+    @Liveness
+    public class DataHealthCheck implements HealthCheck {
+
+      @Override
+      public HealthCheckResponse call() {
+          return HealthCheckResponse.named("Health check with data")
+                .up()
+                .withData("red", "redValue")
+                .withData("hat", "hatValue")
+                .build();
+      }
+    }
+
+  * Test custom data health check
+    ```
+    curl http://localhost:8080/q/health/live
+    ```
+
 ## Develop and fix negative health checks
+  * Create database connection health check
+    ```
+    @ApplicationScoped
+    @Liveness
+    public class DatabaseConnectionHealthCheck implements HealthCheck {
+
+      @ConfigProperty(name = "database.up", defaultValue = "false")
+      public boolean databaseUp;
+
+      @Override
+      public HealthCheckResponse call() {
+          HealthCheckResponseBuilder responseBuilder = HealthCheckResponse.named("Database connection health check");
+      
+          try {
+              simulateDatabaseConnectionVerification();
+              responseBuilder.up();
+          } catch (IllegalStateException e) {
+              responseBuilder.down()
+              .withData("error", e.getMessage());
+          }
+
+          return responseBuilder.build();
+      }
+
+      private void simulateDatabaseConnectionVerification() {
+          if (!databaseUp) {
+              throw new IllegalStateException("Cannot contact database");
+          }
+      }
+    }
+    ```
+
+  * Test database probe connection
+    ```
+    http://localhost:8080/q/health/live
+    ```
+
+  * Connect probe on OpenShift
+    ```
+    oc set probe dc/quarkus-person --readiness --initial-delay-seconds=5 --period-seconds=5 --failure-threshold=20 --get-url=http://:8080/q//health/ready
+    oc set probe dc/quarkus-person --liveness --initial-delay-seconds=5 --period-seconds=5 --failure-threshold=20 --get-url=http://:8080/q/health/live
+    oc rollout latest dc/quarkus-person
+    ```
 
 # Create reactive messageing microservices
 

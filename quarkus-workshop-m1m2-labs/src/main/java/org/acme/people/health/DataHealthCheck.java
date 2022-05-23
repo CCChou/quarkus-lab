@@ -14,8 +14,8 @@ public class DataHealthCheck implements HealthCheck {
     public HealthCheckResponse call() {
         return HealthCheckResponse.named("Health check with data")
                 .up()
-                .withData("foo", "fooValue")
-                .withData("bar", "barValue")
+                .withData("red", "redValue")
+                .withData("hat", "hatValue")
                 .build();
     }
 
