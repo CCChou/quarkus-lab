@@ -247,9 +247,68 @@
     ```
 
 ## Implement paging and filtering and integrate life-cycle hooks
+  * Add datatable endpoint to resource class
+    ```java
+    @GET
+    @Path("/datatable")
+    @Produces(MediaType.APPLICATION_JSON)
+    public DataTable datatable(
+            @QueryParam(value = "draw") int draw,
+            @QueryParam(value = "start") int start,
+            @QueryParam(value = "length") int length,
+            @QueryParam(value = "search[value]") String searchVal) {
+
+        // Begin result
+        DataTable result = new DataTable();
+        result.setDraw(draw);
+
+        // Filter based on search
+        PanacheQuery<Person> filteredPeople;
+        if (searchVal != null && !searchVal.isEmpty()) {
+            filteredPeople = Person.<Person>find("name like :search",
+                    Parameters.with("search", "%" + searchVal + "%"));
+        } else {
+            filteredPeople = Person.findAll();
+        }
+
+        // Page and return
+        int page_number = start / length;
+        filteredPeople.page(page_number, length);
+        result.setRecordsFiltered(filteredPeople.count());
+        result.setData(filteredPeople.list());
+        result.setRecordsTotal(Person.count());
+        return result;
+    }
+    ```
+  
+  * Test pageable result
+    ```
+    curl -s "http://localhost:8080/person/datatable?draw=1&start=0&length=10&search\[value\]=vad" | jq
+    ```
+  
+  * Add lifecycle hook to resource class
+    ```java
+    @Transactional
+    void onStart(@Observes StartupEvent ev) {
+        for (int i = 0; i < 1000; i++) {
+            String name = CuteNameGenerator.generate();
+            LocalDate birth = LocalDate.now().plusWeeks(Math.round(Math.floor(Math.random() * 40 * 52 * -1)));
+            EyeColor color = EyeColor.values()[(int)(Math.floor(Math.random() * EyeColor.values().length))];
+            Person p = new Person();
+            p.birth = birth;
+            p.eyes = color;
+            p.name = name;
+            Person.persist(p);
+        }
+    }
+    ```
+
+  * Test lifecycle hook result
+    ```
+    curl -s "http://localhost:8080/person/datatable?draw=1&start=0&length=2&search\[value\]=F" | jq
+    ```
 
 ## Deploy a Quarkus application to OpenShift and test service
-
   * Label database service
     ```
     oc label dc/postgres-database app.openshift.io/runtime=postgresql --overwrite
@@ -257,9 +316,46 @@
     oc label dc/postgres-database app.kubernetes.io/part-of=quarkus-person  --overwrite
     oc annotate dc/quarkus-person app.openshift.io/connects-to=postgres-database --overwrite
     ```
+  
   * Test services
     ```
     curl -s $(oc get route quarkus-person -o=go-template --template='{{ .spec.host }}')/person/birth/before/2000 | jq  
+    ```
+## Documenting and Testing APIs
+  * Add smallrye openapi extension
+    ```
+    mvn quarkus:add-extension -Dextensions="smallrye-openapi" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [openapi swaggerui reference](https://quarkus.io/guides/openapi-swaggerui)
+
+  * Test openapi document
+    ```
+    # show yaml
+    curl http://localhost:8080/q/openapi
+
+    # show json
+    curl -H "Accept: application/json" http://localhost:8080/q/openapi
+    ```
+  
+  * Open swagger ui endpoint
+
+
+  * Annotate @Operation and @ApiResponse to api endpoint
+    ```java
+    @Operation(summary = "Finds people born before a specific year", description = "Search the people database and return a list of people born before the specified year")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "The list of people born before the specified year", content = @Content(schema = @Schema(implementation = Person.class))),
+            @APIResponse(responseCode = "500", description = "Something bad happened")
+    })
+    ```
+
+  * Annotate @Parameter to api method
+    ```java
+    public List<Person> getBeforeYear(
+            @Parameter(description = "Cutoff year for searching for people", required = true, name = "year") @PathParam(value = "year") int year) {
+
+        return Person.getBeforeYear(year);
+    }
     ```
 
 # Create and Config Health Check
@@ -353,7 +449,7 @@
 
   * Test database probe connection
     ```
-    http://localhost:8080/q/health/live
+    curl http://localhost:8080/q/health/live
     ```
 
   * Connect probe on OpenShift
@@ -361,11 +457,71 @@
     oc set probe dc/quarkus-person --readiness --initial-delay-seconds=5 --period-seconds=5 --failure-threshold=20 --get-url=http://:8080/q//health/ready
     oc set probe dc/quarkus-person --liveness --initial-delay-seconds=5 --period-seconds=5 --failure-threshold=20 --get-url=http://:8080/q/health/live
     oc rollout latest dc/quarkus-person
+
+    oc set probe dc/quarkus-person --remove --readiness --liveness
     ```
 
 # Create reactive messageing microservices
 
-## Add a Quarkus extension for messaging
+## Create a reactive api
+  * Add vertx extension
+    ```
+    mvn quarkus:add-extension -Dextensions="vertx" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [vertx reference](https://quarkus.io/guides/reactive-event-bus)
+
+  * Add kafka extension
+    ```
+    mvn quarkus:add-extension -Dextensions="messaging-kafka" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [messageing kafka reference](https://quarkus.io/guides/kafka)
+
+  * Inject vertx event bus
+   ```java
+   @Inject EventBus bus; 
+   ```
+
+  * Add reactive endpoint
+    ```java
+    @POST
+    @Path("/{name}")
+    public Uni<Person> addPerson(String name) {
+        return bus.<Person>request("add-person", name)
+                .onItem().transform(response -> response.body());
+    }
+
+    @GET
+    @Path("/name/{name}")
+    public Person byName(String name) {
+        return Person.find("name", name).firstResult();
+    }
+    ```
+
+  * Create reactive service
+    ```java
+    @ApplicationScoped
+    public class PersonService {
+
+        @ConsumeEvent(value = "add-person", blocking = true)
+        @Transactional
+        public Person addPerson(String name) {
+            LocalDate birth = LocalDate.now().plusWeeks(Math.round(Math.floor(Math.random() * 20 * 52 * -1)));
+            EyeColor color = EyeColor.values()[(int)(Math.floor(Math.random() * EyeColor.values().length))];
+            Person p = new Person();
+            p.birth = birth;
+            p.eyes = color;
+            p.name = name;
+            Person.persist(p);
+            return p;
+        }
+    }
+    ```
+  * Test reactive service
+    ```
+    curl -s -X POST http://localhost:8080/person/redhat | jq
+
+    curl -s http://localhost:8080/person/name/redhat | jq
+    ```
 
 ## Publish messages to and consume messages from an address
   * Rebuild app

@@ -78,11 +78,11 @@ public class PersonResource {
             @QueryParam(value = "length") int length,
             @QueryParam(value = "search[value]") String searchVal) {
 
-        // TODO: Begin result
+        // Begin result
         DataTable result = new DataTable();
         result.setDraw(draw);
 
-        // TODO: Filter based on search
+        // Filter based on search
         PanacheQuery<Person> filteredPeople;
         if (searchVal != null && !searchVal.isEmpty()) {
             filteredPeople = Person.<Person>find("name like :search",
@@ -91,27 +91,13 @@ public class PersonResource {
             filteredPeople = Person.findAll();
         }
 
-        // TODO: Page and return
+        // Page and return
         int page_number = start / length;
         filteredPeople.page(page_number, length);
         result.setRecordsFiltered(filteredPeople.count());
         result.setData(filteredPeople.list());
         result.setRecordsTotal(Person.count());
         return result;
-    }
-
-    // Async endpoint
-    @POST
-    @Path("/{name}")
-    public Uni<Person> addPerson(String name) {
-        return bus.<Person>request("add-person", name)
-                .onItem().transform(response -> response.body());
-    }
-
-    @GET
-    @Path("/name/{name}")
-    public Person byName(String name) {
-        return Person.find("name", name).firstResult();
     }
 
     @Transactional
@@ -126,6 +112,20 @@ public class PersonResource {
             p.name = name;
             Person.persist(p);
         }
+    }
+
+    // Async endpoint
+    @POST
+    @Path("/{name}")
+    public Uni<Person> addPerson(String name) {
+        return bus.<Person>request("add-person", name)
+                .onItem().transform(response -> response.body());
+    }
+
+    @GET
+    @Path("/name/{name}")
+    public Person byName(String name) {
+        return Person.find("name", name).firstResult();
     }
 
 }
