@@ -7,6 +7,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 
 @Path("/notification")
@@ -29,16 +33,14 @@ public class NotificationResource {
     @ConfigProperty(name = "notification.crash")
     Boolean crash;
 
-    private static final String HOSTNAME = parseContainerIdFromHostname(
-            System.getenv().getOrDefault("HOSTNAME", "unknown"));
-
-    static String parseContainerIdFromHostname(String hostname) {
-        return hostname.replaceAll("notification-v\\d+-", "");
-    }
+    private static final String HOSTNAME = System.getenv().getOrDefault("HOSTNAME", "unknown");
 
     @GET
     @Retry(maxRetries = 10)
-    public Response getRecommendations() {
+    @CircuitBreaker(requestVolumeThreshold = 2, failureRatio = 1, delay = 10000)
+    @Fallback(fallbackMethod = "getFallbackNotifications")
+    @Timeout(500)
+    public Response getNotifications() {
         count++;
         logger.info(String.format("notification request from %s: %d", HOSTNAME, count));
 
@@ -68,7 +70,7 @@ public class NotificationResource {
 
     private void timeout() {
         try {
-            int delay = 1_000;
+            int delay = 1000;
             logger.info("This request will be delayed " + delay + "ms");
             Thread.sleep(delay);
         } catch (InterruptedException e) {
@@ -79,7 +81,7 @@ public class NotificationResource {
     private Response doMisbehavior() {
         logger.info(String.format("Misbehaving %d", count));
         return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                .entity(String.format("recommendation misbehavior from '%s'\n", HOSTNAME)).build();
+                .entity(String.format("notification misbehavior from '%s'\n", HOSTNAME)).build();
     }
 
     private void crash() {

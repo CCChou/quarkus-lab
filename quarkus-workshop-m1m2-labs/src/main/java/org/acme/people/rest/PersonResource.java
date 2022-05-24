@@ -2,6 +2,7 @@ package org.acme.people.rest;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -27,6 +28,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Parameters;
 import io.quarkus.runtime.StartupEvent;
@@ -42,6 +44,9 @@ public class PersonResource {
     @Inject
     EventBus bus;
 
+    @Inject
+    public MeterRegistry registry;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<Person> getAll() {
@@ -52,6 +57,7 @@ public class PersonResource {
     @Path("/eyes/{color}")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Person> findByColor(@PathParam(value = "color") EyeColor color) {
+        registry.counter("findpersonbycolor.process.counter").increment();
         return Person.findByColor(color);
     }
 
@@ -118,6 +124,7 @@ public class PersonResource {
     @POST
     @Path("/{name}")
     public Uni<Person> addPerson(String name) {
+        registry.timer("addperson.process.timer").record(3000, TimeUnit.MILLISECONDS);
         return bus.<Person>request("add-person", name)
                 .onItem().transform(response -> response.body());
     }
