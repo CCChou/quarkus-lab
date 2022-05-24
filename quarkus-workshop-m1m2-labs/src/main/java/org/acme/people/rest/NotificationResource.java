@@ -1,4 +1,4 @@
-package org.acme.recommendation.rest;
+package org.acme.people.rest;
 
 import java.util.Random;
 
@@ -6,47 +6,41 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-public class RecommendationResource {
+@Path("/notification")
+public class NotificationResource {
+    private static final String RESPONSE_STRING_FORMAT = "notification v1 from '%s': %d\n";
 
-    private static final String RESPONSE_STRING_FORMAT = "recommendation v1 from '%s': %d\n";
-
-    private static final String RESPONSE_STRING_FALLBACK_FORMAT = "recommendation fallback from '%s': %d\n";
+    private static final String RESPONSE_STRING_FALLBACK_FORMAT = "notification fallback from '%s': %d\n";
 
     private final Logger logger = Logger.getLogger(getClass());
 
-    /**
-     * Counter to help us see the lifecycle
-     */
+    // Counter to help us see the lifecycle
     private int count = 0;
 
-    /**
-     * Flag for throwing a 503 when enabled
-     */
-    private boolean misbehave = false;
+    @ConfigProperty(name = "notification.misbehave")
+    Boolean misbehave;
 
-    /**
-     * Flag for delaying responses 1_000ms, 50% chance
-     */
-    private boolean timeout = false;
+    @ConfigProperty(name = "notification.timouot")
+    Boolean timeout;
 
-    /**
-     * Flag for crashing the service, 50% chance
-     */
-    private boolean crash = false;
+    @ConfigProperty(name = "notification.crash")
+    Boolean crash;
 
     private static final String HOSTNAME = parseContainerIdFromHostname(
             System.getenv().getOrDefault("HOSTNAME", "unknown"));
 
     static String parseContainerIdFromHostname(String hostname) {
-        return hostname.replaceAll("recommendation-v\\d+-", "");
+        return hostname.replaceAll("notification-v\\d+-", "");
     }
 
     @GET
+    @Retry(maxRetries = 10)
     public Response getRecommendations() {
         count++;
-        logger.info(String.format("recommendation request from %s: %d", HOSTNAME, count));
+        logger.info(String.format("notification request from %s: %d", HOSTNAME, count));
 
         if (new Random().nextBoolean()) {
 
@@ -59,16 +53,16 @@ public class RecommendationResource {
             }
         }
 
-        logger.debug("recommendation service ready to return");
+        logger.debug("notification service ready to return");
         if (misbehave) {
             return doMisbehavior();
         }
         return Response.ok(String.format(RESPONSE_STRING_FORMAT, HOSTNAME, count)).build();
     }
 
-    public Response getFallbackRecommendations() {
+    public Response getFallbackNotifications() {
         count++;
-        logger.info(String.format("recommendation request failback from: %s: %d", HOSTNAME, count));
+        logger.info(String.format("notification request failback from: %s: %d", HOSTNAME, count));
         return Response.ok(String.format(RESPONSE_STRING_FALLBACK_FORMAT, HOSTNAME, count)).build();
     }
 
