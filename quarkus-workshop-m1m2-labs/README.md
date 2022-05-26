@@ -538,7 +538,7 @@
 
 # Create Microservices Metrics and Tracing
 
-## Leverage Prometheus to collect application metrics
+## Generate metrics in the application and query them in Prometheus
   * Add micrometer metrics extensions
     ```
     mvn quarkus:add-extension -Dextensions="micrometer-registry-prometheus" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
@@ -546,8 +546,23 @@
     ```
     [micrometer metrics reference](https://quarkus.io/guides/micrometer)
 
+  * Add metrics into service
+    ```java
+    private final MeterRegistry registry;
 
-## Generate metrics in the application and query them in Prometheus
+    NameConverter(MeterRegistry registry) {
+        this.registry = registry;
+    }
+    ```
+
+    ```java
+    public String process(String name) {
+        String honorific = honorifics[(int) Math.floor(Math.random() * honorifics.length)];
+        registry.counter("nameconvert.process.counter").increment();
+        registry.timer("nameconvert.process.timer").record(3000, TimeUnit.MILLISECONDS);
+        return honorific + " " + name;
+    }
+    ```
 
 ## Visualize the metrics with Grafana
 
@@ -627,7 +642,7 @@
     ./parallel.sh "curl localhost:8080/notification" 10
     ```
 
-## Add timeout and Fallback mechanism
+## Add circuit breaker and Fallback mechanism
   * reset service and trigger crash and timeout, generate service to see deply
     ```
     comment out @Timeout
