@@ -1,4 +1,4 @@
-package org.acme.people.rest;
+package org.acme.training.rest;
 
 import java.util.Optional;
 
@@ -9,7 +9,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.acme.people.service.GreetingService;
+import org.acme.training.service.GreetingService;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

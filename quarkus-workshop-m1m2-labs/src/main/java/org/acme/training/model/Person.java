@@ -1,4 +1,4 @@
-package org.acme.people.model;
+package org.acme.training.model;
 
 import java.time.LocalDate;
 import java.util.List;

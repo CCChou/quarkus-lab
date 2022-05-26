@@ -60,8 +60,6 @@
   
   * Create client
     * <img width="691" alt="SSO-client" src="https://user-images.githubusercontent.com/58408898/169682655-ff62f699-bd7a-4908-9283-e07fdd5d5c14.png">
-  
-  * Create users
 
 # Create and Build a Basic Quarkus Microservices App
 
@@ -538,7 +536,7 @@
     http://(oc get route quarkus-person -o=go-template --template='{{ .spec.host }}')/names.html
     ```
 
-# Create Microservices Metrics
+# Create Microservices Metrics and Tracing
 
 ## Leverage Prometheus to collect application metrics
   * Add micrometer metrics extensions
@@ -553,8 +551,111 @@
 
 ## Visualize the metrics with Grafana
 
-# Create Microservices Tracing
-
-## Install Jaeger for distributed tracing
-
 ## Add tracing to a Quarkus application and inspect traces in the Jaeger tracing console
+  * Add opentracing extensions
+    ```
+    mvn quarkus:add-extension -Dextensions="smallrye-opentracing, rest-client-reactive" -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [opentracing reference](https://quarkus.io/guides/opentracing)
+
+
+# Add Fault Tolerance mechanism and inspect outcomes
+
+## Add retry mechanism
+  * Add fault tolerance extensions
+    ```
+    mvn quarkus:add-extension -Dextension=quarkus-smallrye-fault-tolerance -f $HOME/quarkus-lab/quarkus-workshop-m1m2-labs
+    ```
+    [smallrye fault tolerance reference](https://quarkus.io/guides/smallrye-fault-tolerance)
+
+  * Simulate crash and generate services to see failure outout
+    ```
+    curl http://localhost:8080/notification/crash
+    
+    ./parallel.sh "curl localhost:8080/notification" 10
+    ```
+  
+  * Add retry and restart service to see the correct response
+    ```java
+    @GET
+    @Retry(maxRetries = 10)
+    public Response getNotifications() {
+      ...
+    }
+    ```
+
+    ```
+    curl http://localhost:8080/notification/crash
+    
+    ./parallel.sh "curl localhost:8080/notification" 10
+    ```
+    
+## Add timeout and Fallback mechanism
+  * reset service and trigger timeout, generate service to see some service take more than 1 second
+    ```
+    comment out @Retry
+
+    curl http://localhost:8080/notification/reset
+
+    curl http://localhost:8080/notification/timeout
+
+    ./parallel.sh "curl localhost:8080/notification" 10
+    ```
+
+  * Add Fallback and timeout
+    ```java
+    @GET
+    @Fallback(fallbackMethod = "getFallbackNotifications")
+    @Timeout(500)
+    public Response getNotifications() {
+      ...
+    }
+    ```
+
+    ```java
+    public Response getFallbackNotifications() {
+        count++;
+        logger.info(String.format("notification request failback from: %s: %d", HOSTNAME, count));
+        return Response.ok(String.format(RESPONSE_STRING_FALLBACK_FORMAT, HOSTNAME, count)).build();
+    }
+    ```
+  
+  * Restart service and see the correct response
+    ```
+    curl http://localhost:8080/notification/timeout
+
+    ./parallel.sh "curl localhost:8080/notification" 10
+    ```
+
+## Add timeout and Fallback mechanism
+  * reset service and trigger crash and timeout, generate service to see deply
+    ```
+    comment out @Timeout
+
+    curl http://localhost:8080/notification/reset
+
+    curl http://localhost:8080/notification/crash
+
+    curl http://localhost:8080/notification/timeout
+
+    ./sequential.sh "curl -s localhost:8080/notification"
+    ```
+  
+  * Add circuit breaker mechanism
+    ```java
+    @GET
+    @CircuitBreaker(requestVolumeThreshold = 2, failureRatio = 1, delay = 10000)
+    @Fallback(fallbackMethod = "getFallbackNotifications")
+    public Response getNotifications() {
+      ...
+    }
+    ```
+
+  * Restart service and see the correct response
+    ```
+    curl http://localhost:8080/notification/crash
+
+    curl http://localhost:8080/notification/timeout
+
+    ./sequential.sh "curl -s localhost:8080/notification"
+    ```

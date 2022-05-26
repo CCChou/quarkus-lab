@@ -1,4 +1,4 @@
-package org.acme.people.model;
+package org.acme.training.model;
 
 import java.io.Serializable;
 import java.util.List;
@@ -19,15 +19,19 @@ public class DataTable implements Serializable {
     public void setDraw(int draw) {
         this.draw = draw;
     }
+
     public void setRecordsTotal(long recordsTotal) {
         this.recordsTotal = recordsTotal;
     }
+
     public void setRecordsFiltered(long recordsFiltered) {
         this.recordsFiltered = recordsFiltered;
     }
+
     public void setData(List<Person> data) {
         this.data = data;
     }
+
     public void setError(String error) {
         this.error = error;
     }
@@ -35,18 +39,21 @@ public class DataTable implements Serializable {
     public long getDraw() {
         return this.draw;
     }
+
     public long getRecordsTotal() {
         return this.recordsTotal;
     }
+
     public long getRecordsFiltered() {
         return this.recordsFiltered;
     }
+
     public List<Person> getData() {
         return this.data;
     }
+
     public String getError() {
         return this.error;
     }
-
 
 }

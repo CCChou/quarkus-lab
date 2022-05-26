@@ -1,4 +1,4 @@
-package org.acme.people.rest;
+package org.acme.training.rest;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,16 +17,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.acme.people.model.DataTable;
-import org.acme.people.model.EyeColor;
-import org.acme.people.model.Person;
-import org.acme.people.utils.CuteNameGenerator;
+import org.acme.training.model.DataTable;
+import org.acme.training.model.EyeColor;
+import org.acme.training.model.Person;
+import org.acme.training.utils.CuteNameGenerator;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.opentracing.Traced;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -121,6 +122,7 @@ public class PersonResource {
     }
 
     // Async endpoint
+    @Traced
     @POST
     @Path("/{name}")
     public Uni<Person> addPerson(String name) {

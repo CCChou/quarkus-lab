@@ -1,10 +1,10 @@
-package org.acme.people.stream;
+package org.acme.training.stream;
 
 import java.time.Duration;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.acme.people.utils.CuteNameGenerator;
+import org.acme.training.utils.CuteNameGenerator;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import io.smallrye.mutiny.Multi;

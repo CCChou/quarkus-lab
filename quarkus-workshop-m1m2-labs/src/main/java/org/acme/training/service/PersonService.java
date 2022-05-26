@@ -1,12 +1,12 @@
-package org.acme.people.service;
+package org.acme.training.service;
 
 import java.time.LocalDate;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
 
-import org.acme.people.model.EyeColor;
-import org.acme.people.model.Person;
+import org.acme.training.model.EyeColor;
+import org.acme.training.model.Person;
 import org.eclipse.microprofile.opentracing.Traced;
 
 import io.quarkus.vertx.ConsumeEvent;

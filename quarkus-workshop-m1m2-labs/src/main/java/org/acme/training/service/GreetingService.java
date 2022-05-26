@@ -1,4 +1,4 @@
-package org.acme.people.service;
+package org.acme.training.service;
 
 import javax.enterprise.context.ApplicationScoped;
 

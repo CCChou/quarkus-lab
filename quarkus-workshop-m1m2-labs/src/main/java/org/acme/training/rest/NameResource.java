@@ -1,4 +1,4 @@
-package org.acme.people.stream;
+package org.acme.training.rest;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -22,5 +22,4 @@ public class NameResource {
     public Publisher<String> stream() {
         return names;
     }
-
 }

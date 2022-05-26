@@ -1,4 +1,4 @@
-package org.acme.people;
+package org.acme.training;
 
 import io.quarkus.test.junit.NativeImageTest;
 

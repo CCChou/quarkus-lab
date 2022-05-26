@@ -1,18 +1,17 @@
-package org.acme.people.stream;
+package org.acme.training.stream;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
 
+@Traced
 @ApplicationScoped
 public class NameConverter {
 

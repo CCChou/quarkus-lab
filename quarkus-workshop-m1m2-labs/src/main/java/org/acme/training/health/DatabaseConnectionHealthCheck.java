@@ -1,4 +1,4 @@
-package org.acme.people.health;
+package org.acme.training.health;
 
 import javax.enterprise.context.ApplicationScoped;
 

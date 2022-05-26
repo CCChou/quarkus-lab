@@ -1,8 +1,8 @@
-package org.acme.people;
+package org.acme.training;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.acme.people.service.GreetingService;
+import org.acme.training.service.GreetingService;
 
 import io.quarkus.test.Mock;
 

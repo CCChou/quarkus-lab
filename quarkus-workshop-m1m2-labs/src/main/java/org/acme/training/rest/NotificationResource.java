@@ -1,4 +1,4 @@
-package org.acme.people.rest;
+package org.acme.training.rest;
 
 import java.util.Random;
 
